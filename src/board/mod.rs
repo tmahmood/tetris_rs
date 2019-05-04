@@ -26,6 +26,7 @@ use crate::board::tile::Tile;
 pub struct Board {
     pub tiles: Vec<Tile>,
     pub current_shape: Shape,
+    pub next_shape: Shape,
     pub speed_factor: f64,
     pub direction: f64,
     pub time_passed: f64,
@@ -38,6 +39,7 @@ impl Board {
             tiles: Vec::new(),
             speed_factor,
             current_shape: Shape::choose_random_shape(),
+            next_shape: Shape::choose_random_shape(),
             direction: 0.0,
             time_passed: 0.0,
             drop_fast: false
@@ -54,6 +56,12 @@ impl Board {
             ));
         }
         self.current_shape.get_points(&mut points);
+        let p: Vec<(f64, f64, usize)> = self.next_shape.tiles.iter().map(|tile| {(
+            tile.point.x() + 7.0 * GR,
+            tile.point.y(),
+            tile.shape_index,
+        )}).collect();
+        points.extend(p);
         points
     }
 
@@ -69,7 +77,8 @@ impl Board {
         if !(self.update_shape_position()) {
             self.drop_fast = false;
             self.tiles.append(self.current_shape.tiles.as_mut());
-            self.current_shape = Shape::choose_random_shape();
+            self.current_shape = self.next_shape.clone();
+            self.next_shape = Shape::choose_random_shape();
         }
         self.time_passed = 0.0;
     }

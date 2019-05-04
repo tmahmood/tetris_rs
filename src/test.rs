@@ -36,3 +36,8 @@ fn rotate_shape() {
     assert_eq!(e, a);
 }
 
+#[test]
+fn place_block() {
+
+}
+

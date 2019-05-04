@@ -47,10 +47,14 @@ impl Game for App {
     fn render(&mut self, args: &RenderArgs) {
         use graphics::*;
         let square = rectangle::square(0.0, 0.0, GR);
+        let rect_big = rectangle::rectangle_by_corners(
+            0.0, 0.0,
+            GR * 6.5, ACTUAL_SIZE[1] as f64 - 30.0);
         let points = self.board.get_all_drawable_tiles();
         self.gl.draw(args.viewport(), |c, gl| {
             // Clear the screen.
             clear(BLACK, gl);
+            rectangle(GRAY, rect_big, c.transform.trans(GR * 11.0, 0.0), gl);
             points.iter().for_each(|point| {
                 let transform = c.transform.trans(point.0, point.1);
                 rectangle(COLORS[point.2], square, transform, gl);
