@@ -1,14 +1,18 @@
 use crate::board::Point;
 use crate::consts::*;
 
-#[derive(Copy, Clone, PartialOrd, PartialEq, Debug)]
+#[derive(Copy, Clone, PartialOrd, PartialEq, Debug, Ord, Eq)]
 pub struct Tile {
     pub point: Point,
+    pub shape_index: usize,
 }
 
 impl Tile {
-    pub fn new(x: i32, y: i32) -> Tile {
-        Tile { point: Point {x, y}, }
+    pub fn new(x: i32, y: i32, shape_index: usize) -> Tile {
+        Tile {
+            point: Point {x, y},
+            shape_index
+        }
     }
 
     pub fn collides_with(&self, other: &Tile) -> bool {
@@ -24,7 +28,7 @@ impl Tile {
         self.point.y += 1;
     }
 
-    pub fn update_y(&mut self, direction: i32) {
+    pub fn update_x(&mut self, direction: i32) {
         self.point.x += direction * 1;
     }
 

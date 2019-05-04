@@ -1,4 +1,5 @@
 use crate::board::tile::Tile;
+use crate::board::Point;
 use crate::consts::*;
 use rand::Rng;
 
@@ -17,7 +18,7 @@ impl Shape {
         Shape {
             tiles: SHAPES[num].iter()
                 .map(|tile|
-                    Tile::new(tile[0] + 4, tile[1])
+                    Tile::new(tile[0] + 4, tile[1], num)
                 ).collect(),
             tile_index: num
         }
@@ -27,16 +28,19 @@ impl Shape {
         Shape {
             tiles: tiles.iter()
                 .map(|tile|
-                    Tile::new(tile[0], tile[1])
+                    Tile::new(tile[0], tile[1], tile_index)
                 ).collect(),
             tile_index
         }
     }
 
-    pub fn get_points(&self, points: &mut Vec<(f64, f64)>) {
+    pub fn get_points(&self, points: &mut Vec<(f64, f64, usize)>) {
         for tile in self.tiles.iter() {
-            let (x, y) = (tile.point.x(), tile.point.y());
-            points.push((x, y));
+            points.push((
+                tile.point.x(),
+                tile.point.y(),
+                tile.shape_index
+            ));
         }
     }
 
@@ -46,23 +50,53 @@ impl Shape {
         }
     }
 
-    pub fn update_vert(&mut self, direction: i32) {
+    pub fn update_horz(&mut self, direction: i32) {
         for tile in self.tiles.iter_mut() {
-            tile.update_y(direction);
+            tile.update_x(direction);
         }
     }
 
     pub fn rotate_left(&mut self) {
-        self.tiles = self.tiles.iter_mut().map(|tile| {
-            Tile::new(tile.point.y, -tile.point.x)
+        let tiles: Vec<Tile> = self.tiles.iter().map(|tile| {
+            Tile::new(tile.point.y, -tile.point.x, self.tile_index)
         }).collect();
+        self.trans(tiles);
     }
 
-    pub fn norm(&self) -> Shape {
-        let mut shape = self.clone();
-        let lowest = shape.tiles.iter().min_by_key(|p| p.point.y);
-        shape
+    pub fn rotate_right(&mut self) {
+        let tiles: Vec<Tile> = self.tiles.iter().map(|tile| {
+            Tile::new(
+                -tile.point.y,
+                tile.point.x,
+                self.tile_index)
+        }).collect();
+        self.trans(tiles);
     }
-
+    pub fn trans(&mut self, mut tiles: Vec<Tile>) {
+        let lowest_new_x = tiles.iter()
+            .min_by_key(|p| p.point.x)
+            .unwrap().point.x;
+        let lowest_new_y = tiles.iter()
+            .min_by_key(|p| p.point.y)
+            .unwrap().point.y;
+        let lowest_x = self.tiles.iter()
+            .min_by_key(|p| p.point.x)
+            .unwrap().point.x;
+        let lowest_y = self.tiles.iter()
+            .min_by_key(|p| p.point.y)
+            .unwrap().point.y;
+        let move_vec = Point {
+            x: lowest_x - lowest_new_x,
+            y: lowest_y - lowest_new_y
+        };
+        tiles = tiles.iter().map(|tile|{
+            Tile::new(
+                move_vec.x + tile.point.x,
+                move_vec.y + tile.point.y,
+                tile.shape_index
+            )
+        }).collect();
+        self.tiles = tiles;
+    }
 }
 

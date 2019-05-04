@@ -1,5 +1,5 @@
 
-#[derive(Copy, Clone, PartialOrd, PartialEq, Debug)]
+#[derive(Copy, Clone, PartialOrd, PartialEq, Debug, Eq, Ord)]
 pub struct Point {
     pub x: i32,
     pub y: i32,
@@ -29,6 +29,7 @@ pub struct Board {
     pub speed_factor: f64,
     pub direction: f64,
     pub time_passed: f64,
+    pub drop_fast: bool
 }
 
 impl Board {
@@ -38,15 +39,19 @@ impl Board {
             speed_factor,
             current_shape: Shape::choose_random_shape(),
             direction: 0.0,
-            time_passed: 0.0
+            time_passed: 0.0,
+            drop_fast: false
         }
     }
 
-    pub fn get_all_drawable_tiles(&self) -> Vec<(f64, f64)>{
+    pub fn get_all_drawable_tiles(&self) -> Vec<(f64, f64, usize)>{
         let mut points = Vec::new();
         for tile in self.tiles.iter() {
-            let (x, y) = (tile.point.x(), tile.point.y());
-            points.push((x, y));
+            points.push((
+                tile.point.x(),
+                tile.point.y(),
+                tile.shape_index
+            ));
         }
         self.current_shape.get_points(&mut points);
         points
@@ -58,13 +63,14 @@ impl Board {
     }
 
     fn update_vert(&mut self) {
-        if self.time_passed >= 0.6 {
-            if !(self.update_shape_position()) {
-                self.tiles.append(self.current_shape.tiles.as_mut());
-                self.current_shape = Shape::choose_random_shape();
-            }
-            self.time_passed = 0.0;
+        if self.time_passed < 0.6 && !self.drop_fast{
+            return;
         }
+        if !(self.update_shape_position()) {
+            self.tiles.append(self.current_shape.tiles.as_mut());
+            self.current_shape = Shape::choose_random_shape();
+        }
+        self.time_passed = 0.0;
     }
 
     pub fn update_shape_position(&mut self) -> bool {
@@ -79,7 +85,7 @@ impl Board {
 
     pub fn update_current_shape_horz(&mut self, direction: i32) {
         let mut shape = self.current_shape.clone();
-        shape.update_vert(direction);
+        shape.update_horz(direction);
         if self.validate_shape_position(&shape) {
             self.current_shape = shape;
         }

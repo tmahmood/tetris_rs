@@ -22,13 +22,25 @@ impl Game for App {
                         Key::A => self.board.speed_factor += 1.0,
                         Key::S => self.board.speed_factor -= 1.0,
                         Key::Up => self.board.current_shape.rotate_left(),
+                        Key::Down => self.board.current_shape.rotate_right(),
                         Key::Left => self.board.update_current_shape_horz(-1),
                         Key::Right => self.board.update_current_shape_horz(1),
+                        Key::Space => self.board.drop_fast = false,
                         _ => (),
                     };
                 },
                 _ => ()
             };
+        } else if args.state == ButtonState::Press {
+            match args.button {
+                Button::Keyboard(k) => {
+                    match k {
+                        Key::Space => self.board.drop_fast = true,
+                        _ => {}
+                    }
+                }
+                _ => {}
+            }
         }
     }
 
@@ -41,7 +53,7 @@ impl Game for App {
             clear(BLACK, gl);
             points.iter().for_each(|point| {
                 let transform = c.transform.trans(point.0, point.1);
-                rectangle(RED, square, transform, gl);
+                rectangle(COLORS[point.2], square, transform, gl);
             });
         });
     }
