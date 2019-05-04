@@ -22,14 +22,16 @@ fn should_fail_to_move_when_passes_boundary() {
 
 #[test]
 fn rotate_shape() {
-    let mut def_shape = Shape::new([[4, 6], [5, 6], [5, 7], [6, 7]], 1);
+    let mut board = Board::new(0.3);
+
+    board.current_shape = Shape::new([[4, 6], [5, 6], [5, 7], [6, 7]], 1);
     let rot_left_shape = Shape::new(
         [[5,  6], [5,  7], [4,  7], [4,  8]],  // z shape rl
         1
     );
-    def_shape.rotate_left();
+    board.rotate_left();
     let mut e = rot_left_shape.tiles.clone();
-    let mut a = def_shape.tiles.clone();
+    let mut a = board.current_shape.tiles.clone();
     e.sort(); a.sort();
     assert_eq!(e, a);
 }

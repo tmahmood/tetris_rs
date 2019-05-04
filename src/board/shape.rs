@@ -1,5 +1,4 @@
 use crate::board::tile::Tile;
-use crate::board::Point;
 use crate::consts::*;
 use rand::Rng;
 
@@ -56,47 +55,5 @@ impl Shape {
         }
     }
 
-    pub fn rotate_left(&mut self) {
-        let tiles: Vec<Tile> = self.tiles.iter().map(|tile| {
-            Tile::new(tile.point.y, -tile.point.x, self.tile_index)
-        }).collect();
-        self.trans(tiles);
-    }
-
-    pub fn rotate_right(&mut self) {
-        let tiles: Vec<Tile> = self.tiles.iter().map(|tile| {
-            Tile::new(
-                -tile.point.y,
-                tile.point.x,
-                self.tile_index)
-        }).collect();
-        self.trans(tiles);
-    }
-    pub fn trans(&mut self, mut tiles: Vec<Tile>) {
-        let lowest_new_x = tiles.iter()
-            .min_by_key(|p| p.point.x)
-            .unwrap().point.x;
-        let lowest_new_y = tiles.iter()
-            .min_by_key(|p| p.point.y)
-            .unwrap().point.y;
-        let lowest_x = self.tiles.iter()
-            .min_by_key(|p| p.point.x)
-            .unwrap().point.x;
-        let lowest_y = self.tiles.iter()
-            .min_by_key(|p| p.point.y)
-            .unwrap().point.y;
-        let move_vec = Point {
-            x: lowest_x - lowest_new_x,
-            y: lowest_y - lowest_new_y
-        };
-        tiles = tiles.iter().map(|tile|{
-            Tile::new(
-                move_vec.x + tile.point.x,
-                move_vec.y + tile.point.y,
-                tile.shape_index
-            )
-        }).collect();
-        self.tiles = tiles;
-    }
 }
 

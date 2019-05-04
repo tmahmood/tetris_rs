@@ -67,6 +67,7 @@ impl Board {
             return;
         }
         if !(self.update_shape_position()) {
+            self.drop_fast = false;
             self.tiles.append(self.current_shape.tiles.as_mut());
             self.current_shape = Shape::choose_random_shape();
         }
@@ -106,6 +107,59 @@ impl Board {
 
     pub fn is_valid_move(&self, tile: &Tile) -> bool {
         self.tiles.iter().all(|_tile| !_tile.collides_with(tile))
+    }
+
+    pub fn rotate_left(&mut self) {
+        let mut shape = self.current_shape.clone();
+        let tiles: Vec<Tile> = shape.tiles.iter().map(|tile| {
+            Tile::new(
+                tile.point.y,
+                -tile.point.x,
+                shape.tile_index)
+        }).collect();
+        if self.trans(tiles, &mut shape) {
+            self.current_shape = shape;
+        }
+    }
+
+    pub fn rotate_right(&mut self) {
+        let mut shape = self.current_shape.clone();
+        let tiles: Vec<Tile> = shape.tiles.iter().map(|tile| {
+            Tile::new(
+                -tile.point.y,
+                tile.point.x,
+                shape.tile_index)
+        }).collect();
+        if self.trans(tiles, &mut shape) {
+            self.current_shape = shape;
+        }
+    }
+    pub fn trans(&mut self, mut tiles: Vec<Tile>, shape: &mut Shape) -> bool {
+        let lowest_new_x = tiles.iter()
+            .min_by_key(|p| p.point.x)
+            .unwrap().point.x;
+        let lowest_new_y = tiles.iter()
+            .min_by_key(|p| p.point.y)
+            .unwrap().point.y;
+        let lowest_x = self.current_shape.tiles.iter()
+            .min_by_key(|p| p.point.x)
+            .unwrap().point.x;
+        let lowest_y = self.current_shape.tiles.iter()
+            .min_by_key(|p| p.point.y)
+            .unwrap().point.y;
+        let move_vec = Point {
+            x: lowest_x - lowest_new_x,
+            y: lowest_y - lowest_new_y
+        };
+        tiles = tiles.iter().map(|tile|{
+            Tile::new(
+                move_vec.x + tile.point.x,
+                move_vec.y + tile.point.y,
+                tile.shape_index
+            )
+        }).collect();
+        shape.tiles = tiles;
+        self.validate_shape_position(shape)
     }
 }
 
