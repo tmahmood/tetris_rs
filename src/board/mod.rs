@@ -48,20 +48,14 @@ impl Board {
 
     pub fn get_all_drawable_tiles(&self) -> Vec<(f64, f64, usize)>{
         let mut points = Vec::new();
-        for tile in self.tiles.iter() {
-            points.push((
-                tile.point.x(),
-                tile.point.y(),
-                tile.shape_index
-            ));
-        }
-        self.current_shape.get_points(&mut points);
-        let p: Vec<(f64, f64, usize)> = self.next_shape.tiles.iter().map(|tile| {(
-            tile.point.x() + 7.0 * GR,
-            tile.point.y(),
-            tile.shape_index,
-        )}).collect();
-        points.extend(p);
+        let push =|tile: &Tile| (
+            tile.point.x(), tile.point.y(), tile.shape_index
+        );
+        points.extend(self.tiles.iter().map(push));
+        points.extend(self.current_shape.tiles.iter().map(push));
+        points.extend(self.next_shape.tiles.iter().map(|tile| (
+            tile.point.x() + 7.0 * GR, tile.point.y(), tile.shape_index,
+        )));
         points
     }
 
@@ -102,12 +96,10 @@ impl Board {
     }
 
     fn validate_shape_position(&self, shape: &Shape) -> bool {
-        if shape.tiles.iter().all(|tile| self.is_inside_boundary(tile)) {
-            if shape.tiles.iter().all(|tile| self.is_valid_move(tile)) {
-                return true;
-            }
+        if !shape.tiles.iter().all(|tile| self.is_inside_boundary(tile)) {
+            return false;
         }
-        false
+        shape.tiles.iter().all(|tile| self.is_valid_move(tile))
     }
     pub fn is_inside_boundary(&self, tile: &Tile) -> bool {
         tile.point.y < BOARD_HEIGHT &&
@@ -121,9 +113,7 @@ impl Board {
     pub fn rotate_left(&mut self) {
         let mut shape = self.current_shape.clone();
         let tiles: Vec<Tile> = shape.tiles.iter().map(|tile| {
-            Tile::new(
-                tile.point.y,
-                -tile.point.x,
+            Tile::new( tile.point.y, -tile.point.x,
                 shape.tile_index)
         }).collect();
         if self.trans(tiles, &mut shape) {
@@ -134,9 +124,7 @@ impl Board {
     pub fn rotate_right(&mut self) {
         let mut shape = self.current_shape.clone();
         let tiles: Vec<Tile> = shape.tiles.iter().map(|tile| {
-            Tile::new(
-                -tile.point.y,
-                tile.point.x,
+            Tile::new( -tile.point.y, tile.point.x,
                 shape.tile_index)
         }).collect();
         if self.trans(tiles, &mut shape) {

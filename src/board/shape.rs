@@ -33,15 +33,6 @@ impl Shape {
         }
     }
 
-    pub fn get_points(&self, points: &mut Vec<(f64, f64, usize)>) {
-        for tile in self.tiles.iter() {
-            points.push((
-                tile.point.x(),
-                tile.point.y(),
-                tile.shape_index
-            ));
-        }
-    }
 
     pub fn update(&mut self) {
         for tile in self.tiles.iter_mut() {
