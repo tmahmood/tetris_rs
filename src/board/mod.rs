@@ -1,5 +1,5 @@
 
-#[derive(Copy, Clone, PartialOrd, PartialEq, Debug, Eq, Ord)]
+#[derive(Copy, Clone, PartialOrd, PartialEq, Debug, Eq, Ord, Default)]
 pub struct Point {
     pub x: i32,
     pub y: i32,
@@ -30,28 +30,36 @@ pub struct Board {
     pub speed_factor: f64,
     pub direction: f64,
     pub time_passed: f64,
-    pub drop_fast: bool
+    pub drop_fast: bool,
+    pub lines: Vec<i32>,
+    pub score: i32,
 }
 
 impl Board {
     pub fn new(speed_factor: f64) -> Board {
         Board {
-            tiles: Vec::new(),
+            tiles: vec![Tile::default(); (BOARD_HEIGHT * BOARD_WIDTH + 1) as usize],
             speed_factor,
             current_shape: Shape::choose_random_shape(),
             next_shape: Shape::choose_random_shape(),
             direction: 0.0,
             time_passed: 0.0,
-            drop_fast: false
+            drop_fast: false,
+            score: 0,
+            lines: vec![0;20]
         }
+    }
+
+    pub fn arr_loc(&self, tile: &Tile) -> usize {
+        ((tile.point.y * BOARD_WIDTH) + tile.point.x) as usize
     }
 
     pub fn get_all_drawable_tiles(&self) -> Vec<(f64, f64, usize)>{
         let mut points = Vec::new();
-        let push =|tile: &Tile| (
+        let push = |tile: &Tile| (
             tile.point.x(), tile.point.y(), tile.shape_index
         );
-        points.extend(self.tiles.iter().map(push));
+        points.extend(self.tiles.iter().filter(|tile| tile.shape_index < 99).map(push));
         points.extend(self.current_shape.tiles.iter().map(push));
         points.extend(self.next_shape.tiles.iter().map(|tile| (
             tile.point.x() + 7.0 * GR, tile.point.y(), tile.shape_index,
@@ -64,17 +72,34 @@ impl Board {
         self.update_vert();
     }
 
-    fn update_vert(&mut self) {
+    pub fn update_vert(&mut self) {
         if self.time_passed < 0.6 && !self.drop_fast{
             return;
         }
         if !(self.update_shape_position()) {
-            self.drop_fast = false;
-            self.tiles.append(self.current_shape.tiles.as_mut());
-            self.current_shape = self.next_shape.clone();
-            self.next_shape = Shape::choose_random_shape();
+            self.place_shape()
         }
         self.time_passed = 0.0;
+    }
+
+    pub fn place_shape(&mut self) {
+        self.drop_fast = false;
+        for tile in self.current_shape.tiles.iter() {
+            self.lines[tile.point.y as usize] += 1;
+            let loc = self.arr_loc(tile);
+            self.tiles[loc] = *tile;
+        }
+        self.current_shape = self.next_shape.clone();
+        self.next_shape = Shape::choose_random_shape();
+    }
+
+    pub fn remove_completed_lines(&mut self) {
+        for i in self.lines.len() - 1..0 {
+            let line = self.lines[i];
+            if line < 10 {
+                continue;
+            }
+        }
     }
 
     pub fn update_shape_position(&mut self) -> bool {

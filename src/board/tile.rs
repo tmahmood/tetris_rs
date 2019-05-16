@@ -7,6 +7,15 @@ pub struct Tile {
     pub shape_index: usize,
 }
 
+impl Default for Tile {
+    fn default () -> Tile {
+        Tile {
+            point: Point::default(),
+            shape_index: 99
+        }
+    }
+}
+
 impl Tile {
     pub fn new(x: i32, y: i32, shape_index: usize) -> Tile {
         Tile {
@@ -14,6 +23,7 @@ impl Tile {
             shape_index
         }
     }
+
 
     pub fn collides_with(&self, other: &Tile) -> bool {
         let rect1 = self.point.clone();

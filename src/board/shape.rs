@@ -33,7 +33,6 @@ impl Shape {
         }
     }
 
-
     pub fn update(&mut self) {
         for tile in self.tiles.iter_mut() {
             tile.update();

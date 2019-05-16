@@ -3,6 +3,31 @@ use crate::board::{tile::Tile, Board, shape::Shape};
 use crate::consts::*;
 
 #[test]
+fn board_size() {
+    let board = Board::new(0.3);
+    assert_eq!(BOARD_WIDTH * BOARD_HEIGHT, board.tiles.len());
+}
+
+#[test]
+fn set_tile_at_position() {
+    let mut board = Board::new(0.3);
+    let tile = Tile::new(6, 4, 1);
+    let loc = board.arr_loc(&tile);
+    board.tiles[loc] = tile;
+    assert_eq!(
+        Tile::new(6,4, 1),
+        board.tiles[46],
+    );
+    let tile = Tile::new(7, 12, 1);
+    let loc = board.arr_loc(&tile);
+    board.tiles[loc] = tile;
+    assert_eq!(
+        Tile::new(7,12, 1),
+        board.tiles[127]
+    );
+}
+
+#[test]
 fn if_tile_can_move() {
     let board = Board::new(0.3);
     let tile = Tile::new(1, 8, 1);
@@ -23,7 +48,6 @@ fn should_fail_to_move_when_passes_boundary() {
 #[test]
 fn rotate_shape() {
     let mut board = Board::new(0.3);
-
     board.current_shape = Shape::new([[4, 6], [5, 6], [5, 7], [6, 7]], 1);
     let rot_left_shape = Shape::new(
         [[5,  6], [5,  7], [4,  7], [4,  8]],  // z shape rl
@@ -37,7 +61,42 @@ fn rotate_shape() {
 }
 
 #[test]
-fn place_block() {
+fn keep_track_of_lines() {
+    let mut board = Board::new(0.3);
+    board.current_shape = Shape::new([[4, 6], [5, 6], [5, 7], [6, 7]], 1);
+    board.place_shape();
+    assert_eq!(board.lines[6], 2);
+    assert_eq!(board.lines[7], 2);
+}
 
+
+#[test]
+fn line_count_after_placing() {
+    let mut board = Board::new(0.3);
+    board.current_shape = Shape::new([ [1, 6], [2, 6], [3, 6], [4, 6]], 0 );
+    board.place_shape();
+    assert_eq!(4, board.lines[6]);
+}
+
+#[test]
+fn when_all_lines_are_filled() {
+    let mut board = Board::new(0.3);
+    board.tiles = vec![
+        Tile::new(1, 6, 1),
+        Tile::new(2, 6, 1),
+        Tile::new(3, 6, 1),
+        Tile::new(4, 6, 1),
+        Tile::new(5, 6, 1),
+        Tile::new(6, 6, 1),
+        Tile::new(7, 5, 1),
+        Tile::new(7, 6, 1),
+        Tile::new(8, 6, 1),
+        Tile::new(9, 6, 1),
+        Tile::new(10, 6, 1),
+    ];
+    board.lines[6] = 10;
+    board.remove_completed_lines();
+    assert_eq!(1, board.tiles.len());
+    assert_eq!(1, board.lines[6]);
 }
 
