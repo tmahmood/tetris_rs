@@ -8,11 +8,11 @@ pub struct Point {
 
 impl Point {
     pub fn x(&self) -> f64 {
-        GR * self.x as f64
+        GRD * self.x as f64
     }
 
     pub fn y(&self) -> f64 {
-        GR * self.y as f64
+        GRD * self.y as f64
     }
 }
 
@@ -38,7 +38,7 @@ pub struct Board {
 impl Board {
     pub fn new(speed_factor: f64) -> Board {
         Board {
-            tiles: vec![Tile::default(); (BOARD_HEIGHT * BOARD_WIDTH + 1) as usize],
+            tiles: vec![Tile::default(); ((BOARD_HEIGHT * BOARD_WIDTH) + 1) as usize],
             speed_factor,
             current_shape: Shape::choose_random_shape(),
             next_shape: Shape::choose_random_shape(),
@@ -50,10 +50,6 @@ impl Board {
         }
     }
 
-    pub fn arr_loc(&self, tile: &Tile) -> usize {
-        ((tile.point.y * BOARD_WIDTH) + tile.point.x) as usize
-    }
-
     pub fn get_all_drawable_tiles(&self) -> Vec<(f64, f64, usize)>{
         let mut points = Vec::new();
         let push = |tile: &Tile| (
@@ -62,7 +58,7 @@ impl Board {
         points.extend(self.tiles.iter().filter(|tile| tile.shape_index < 99).map(push));
         points.extend(self.current_shape.tiles.iter().map(push));
         points.extend(self.next_shape.tiles.iter().map(|tile| (
-            tile.point.x() + 7.0 * GR, tile.point.y(), tile.shape_index,
+            tile.point.x() + 8.0 * GRD, tile.point.y(), tile.shape_index,
         )));
         points
     }
@@ -77,7 +73,7 @@ impl Board {
             return;
         }
         if !(self.update_shape_position()) {
-            self.place_shape()
+            self.place_shape();
         }
         self.time_passed = 0.0;
     }
@@ -91,6 +87,10 @@ impl Board {
         }
         self.current_shape = self.next_shape.clone();
         self.next_shape = Shape::choose_random_shape();
+    }
+
+    pub fn arr_loc(&self, tile: &Tile) -> usize {
+        ((tile.point.y * BOARD_WIDTH) + tile.point.x) as usize
     }
 
     pub fn remove_completed_lines(&mut self) {
@@ -112,9 +112,9 @@ impl Board {
         false
     }
 
-    pub fn update_current_shape_horz(&mut self, direction: i32) {
+    pub fn update_current_shape_horizontal(&mut self, direction: i32) {
         let mut shape = self.current_shape.clone();
-        shape.update_horz(direction);
+        shape.update_horizontal(direction);
         if self.validate_shape_position(&shape) {
             self.current_shape = shape;
         }
@@ -126,9 +126,10 @@ impl Board {
         }
         shape.tiles.iter().all(|tile| self.is_valid_move(tile))
     }
+
     pub fn is_inside_boundary(&self, tile: &Tile) -> bool {
         tile.point.y < BOARD_HEIGHT &&
-            (tile.point.x <= BOARD_WIDTH && tile.point.x >= 0)
+            (tile.point.x < BOARD_WIDTH && tile.point.x >= 0)
     }
 
     pub fn is_valid_move(&self, tile: &Tile) -> bool {
@@ -136,6 +137,7 @@ impl Board {
     }
 
     pub fn rotate_left(&mut self) {
+        if self.current_shape.tile_index == SQUARE_SHAPE { return }
         let mut shape = self.current_shape.clone();
         let tiles: Vec<Tile> = shape.tiles.iter().map(|tile| {
             Tile::new( tile.point.y, -tile.point.x,
@@ -147,10 +149,10 @@ impl Board {
     }
 
     pub fn rotate_right(&mut self) {
+        if self.current_shape.tile_index == SQUARE_SHAPE { return }
         let mut shape = self.current_shape.clone();
         let tiles: Vec<Tile> = shape.tiles.iter().map(|tile| {
-            Tile::new( -tile.point.y, tile.point.x,
-                shape.tile_index)
+            Tile::new( -tile.point.y, tile.point.x, shape.tile_index)
         }).collect();
         if self.trans(tiles, &mut shape) {
             self.current_shape = shape;

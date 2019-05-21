@@ -39,11 +39,23 @@ impl Shape {
         }
     }
 
-    pub fn update_horz(&mut self, direction: i32) {
+    pub fn update_times(&mut self, times: i32) {
+        for _time in 0..times {
+            self.update();
+        }
+    }
+
+
+    pub fn update_horizontal(&mut self, direction: i32) {
         for tile in self.tiles.iter_mut() {
             tile.update_x(direction);
         }
     }
 
+    pub fn update_horizontal_times(&mut self, direction: i32, times: i32) {
+        for _time in 0..times {
+            self.update_horizontal(direction);
+        }
+    }
 }
 

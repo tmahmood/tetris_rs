@@ -10,7 +10,7 @@ pub struct Tile {
 impl Default for Tile {
     fn default () -> Tile {
         Tile {
-            point: Point::default(),
+            point: Point{x: 0, y: 0},
             shape_index: 99
         }
     }
@@ -24,12 +24,11 @@ impl Tile {
         }
     }
 
-
     pub fn collides_with(&self, other: &Tile) -> bool {
         let rect1 = self.point.clone();
         let rect2 = other.point.clone();
-        rect1.x() < rect2.x() + GR && rect1.x() + GR > rect2.x()
-            && rect1.y() < rect2.y() + GR && rect1.y() + GR > rect2.y()
+        rect1.x() < rect2.x() + GRD && rect1.x() + GRD > rect2.x()
+            && rect1.y() < rect2.y() + GRD && rect1.y() + GRD > rect2.y()
     }
 
     pub fn update(&mut self){
