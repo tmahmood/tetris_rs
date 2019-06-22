@@ -1,4 +1,3 @@
-
 #[derive(Copy, Clone, PartialOrd, PartialEq, Debug, Eq, Ord, Default)]
 pub struct Point {
     pub x: i32,
@@ -46,11 +45,11 @@ impl Board {
             time_passed: 0.0,
             drop_fast: false,
             score: 0,
-            lines: vec![0;20]
+            lines: vec![0; 20],
         }
     }
 
-    pub fn get_all_drawable_tiles(&self) -> Vec<(f64, f64, usize)>{
+    pub fn get_all_drawable_tiles(&self) -> Vec<(f64, f64, usize)> {
         let mut points = Vec::new();
         let push = |tile: &Tile| (
             tile.point.x(), tile.point.y(), tile.shape_index
@@ -69,10 +68,10 @@ impl Board {
     }
 
     pub fn update_vert(&mut self) {
-        if self.time_passed < 0.6 && !self.drop_fast{
+        if self.time_passed < 0.6 && !self.drop_fast {
             return;
         }
-        if !(self.update_shape_position()) {
+        if !self.update_shape_position() {
             self.place_shape();
         }
         self.time_passed = 0.0;
@@ -87,29 +86,56 @@ impl Board {
         }
         self.current_shape = self.next_shape.clone();
         self.next_shape = Shape::choose_random_shape();
+        self.remove_completed_lines();
+    }
+
+    pub fn arr_loc_from_num(&self, x: i32, y: i32) -> usize {
+        ((y * BOARD_WIDTH) + x) as usize
     }
 
     pub fn arr_loc(&self, tile: &Tile) -> usize {
         ((tile.point.y * BOARD_WIDTH) + tile.point.x) as usize
     }
 
+    /// removes completed lines
+    /// goes through all the rows from bottom and removes completed ones rows above the removed
+    /// lines will drop down a row.
     pub fn remove_completed_lines(&mut self) {
-        for i in self.lines.len() - 1..0 {
-            let line = self.lines[i];
-            if line < 10 {
-                continue;
-            }
+        println!("{:?}", self.lines);
+        for i in 0..self.lines.len() {
+            if self.lines[i] < 10 { continue }
+            // get the tile index in the flat array
+            let loc = self.arr_loc_from_num(0, i as i32);
+            // now move down the rows above
+            self.move_down_rows_above(loc);
+            self.lines.remove(i);
+            println!("{:?}", self.lines);
+            self.lines.insert(0, 0);
+            println!("{:?}", self.lines);
+        }
+    }
+
+    // moves rows above
+    pub fn move_down_rows_above(&mut self, loc: usize) {
+        self.tiles.drain(loc..loc + 10);
+        // update tile y
+        for mut tile in self.tiles[0..loc].iter_mut() {
+            tile.point.y += 1;
+        }
+        // insert empty tiles
+        for j in 0..10 {
+            self.tiles.insert(
+                j as usize, Tile::new(0, 0, 99)
+            );
         }
     }
 
     pub fn update_shape_position(&mut self) -> bool {
         let mut shape = self.current_shape.clone();
         shape.update();
-        if self.validate_shape_position(&shape) {
-            self.current_shape = shape;
-            return true
-        }
-        false
+        if !self.validate_shape_position(&shape) { return false; }
+        self.current_shape = shape;
+        return true;
     }
 
     pub fn update_current_shape_horizontal(&mut self, direction: i32) {
@@ -137,11 +163,11 @@ impl Board {
     }
 
     pub fn rotate_left(&mut self) {
-        if self.current_shape.tile_index == SQUARE_SHAPE { return }
+        if self.current_shape.tile_index == SQUARE_SHAPE { return; }
         let mut shape = self.current_shape.clone();
         let tiles: Vec<Tile> = shape.tiles.iter().map(|tile| {
-            Tile::new( tile.point.y, -tile.point.x,
-                shape.tile_index)
+            Tile::new(tile.point.y, -tile.point.x,
+                      shape.tile_index)
         }).collect();
         if self.trans(tiles, &mut shape) {
             self.current_shape = shape;
@@ -149,10 +175,10 @@ impl Board {
     }
 
     pub fn rotate_right(&mut self) {
-        if self.current_shape.tile_index == SQUARE_SHAPE { return }
+        if self.current_shape.tile_index == SQUARE_SHAPE { return; }
         let mut shape = self.current_shape.clone();
         let tiles: Vec<Tile> = shape.tiles.iter().map(|tile| {
-            Tile::new( -tile.point.y, tile.point.x, shape.tile_index)
+            Tile::new(-tile.point.y, tile.point.x, shape.tile_index)
         }).collect();
         if self.trans(tiles, &mut shape) {
             self.current_shape = shape;
@@ -173,13 +199,13 @@ impl Board {
             .unwrap().point.y;
         let move_vec = Point {
             x: lowest_x - lowest_new_x,
-            y: lowest_y - lowest_new_y
+            y: lowest_y - lowest_new_y,
         };
-        tiles = tiles.iter().map(|tile|{
+        tiles = tiles.iter().map(|tile| {
             Tile::new(
                 move_vec.x + tile.point.x,
                 move_vec.y + tile.point.y,
-                tile.shape_index
+                tile.shape_index,
             )
         }).collect();
         shape.tiles = tiles;

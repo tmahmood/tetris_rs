@@ -4,10 +4,17 @@ use crate::consts::*;
 use graphics::line::Shape::Square;
 
 #[test]
+fn drain_vector() {
+    let mut k = vec![3, 4, 1, 5, 3, 1];
+    k.drain(2..4);
+    assert_eq!(vec![3, 4, 3, 1], k);
+}
+
+#[test]
 fn update_horizontal_times() {
     let mut current_shape = Shape::new(SHAPES[SQUARE_SHAPE], SQUARE_SHAPE);
     let mut shape = Shape::new(SHAPES[SQUARE_SHAPE], SQUARE_SHAPE);
-    for i in 0..4 {
+    for _i in 0..4 {
         shape.update_horizontal(-1);
     }
     current_shape.update_horizontal_times(-1, 4);
@@ -18,7 +25,7 @@ fn update_horizontal_times() {
 fn update_times() {
     let mut current_shape = Shape::new(SHAPES[SQUARE_SHAPE], SQUARE_SHAPE);
     let mut shape = Shape::new(SHAPES[SQUARE_SHAPE], SQUARE_SHAPE);
-    for i in 0..4 {
+    for _i in 0..4 {
         shape.update();
     }
     current_shape.update_times(4);
@@ -147,5 +154,38 @@ fn when_all_lines_are_filled() {
     board.remove_completed_lines();
     assert_eq!(1, board.tiles.len());
     assert_eq!(1, board.lines[6]);
+}
+
+#[test]
+fn moving_down_the_rows() {
+    let mut board = Board::new(0.3);
+    board.tiles = vec![
+        Tile::new(1, 6, 1),
+        Tile::new(2, 6, 1),
+        Tile::new(3, 6, 1),
+        Tile::new(4, 5, 1),
+        Tile::new(5, 6, 1),
+        Tile::new(6, 5, 1),
+        Tile::new(7, 5, 1),
+        Tile::new(8, 5, 1),
+        Tile::new(9, 6, 1),
+        Tile::new(10, 6, 1),
+    ];
+    board.move_down_rows_above(6);
+    let final_tiles = vec![
+        Tile::new(1, 6, 99),
+        Tile::new(2, 6, 99),
+        Tile::new(3, 6, 99),
+        Tile::new(4, 6, 1),
+        Tile::new(5, 6, 99),
+        Tile::new(6, 6, 1),
+        Tile::new(7, 6, 1),
+        Tile::new(8, 6, 1),
+        Tile::new(9, 6, 99),
+        Tile::new(10, 6, 99),
+    ];
+    println!("{:?}", board.tiles);
+    assert_eq!(board.tiles.len(), 10);
+    assert_eq!(board.tiles, final_tiles);
 }
 
